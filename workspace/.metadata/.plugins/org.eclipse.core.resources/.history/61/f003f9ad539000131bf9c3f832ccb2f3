@@ -1,0 +1,1330 @@
+package visual;
+
+
+
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Container;
+import java.awt.Dimension;
+import java.awt.Graphics;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
+import java.awt.event.KeyEvent;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintStream;
+import java.io.Writer;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Hashtable;
+import java.util.List;
+import java.util.Vector;
+
+import javax.swing.BorderFactory;
+import javax.swing.BoxLayout;
+import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JFrame;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JPopupMenu;
+import javax.swing.JSpinner;
+import javax.swing.JTextField;
+import javax.swing.SpinnerNumberModel;
+
+import visual.GraphPanel.Edge;
+import visual.GraphPanel.Node;
+
+import java.awt.*;
+
+import javax.swing.*;
+
+import java.util.Stack;
+
+
+/**
+ * Class for data synthesis: on the basis of the transitions graph created in @see GraphPanel , it is possible to compose the sequence of templates
+ * @author Claudio Savaglio
+ * @author Junchao Lu 
+ *
+ */
+public class MenuLayoutDemo2 implements ActionListener, ItemListener {
+	
+	
+	
+	boolean StartMessageGenerate = true;  // when clicking "start button", starting message once and only once
+	int loopcounter = 0;					// global open loop counter
+	final JButton forStarting=new JButton("Loop");    // "loop" menu
+	final JButton forEnding=new JButton("End Loop");   // "end loop" menu
+	final JButton bb3=new JButton("Finalize Sequence"); 
+	final JButton newDiary =new JButton("New Diary"); 
+	final JButton reset =new JButton("Reset");		 // add a new button "reset"
+	final Vector<JButton> l1=new Vector<JButton>();	// for holding buttons for the subjects in "start" menu
+	final Vector<JButton> l4=new Vector<JButton>(); // for holding buttons "Repeat 5 times" "Repeat 10 times" "Repeat 25 times" "Repeat random times"
+	 final Vector<JButton> l5=new Vector<JButton>();// for holding buttons "Best" "Random execution" "Random epsilon"
+	 final Vector<JButton> l6=new Vector<JButton>(); // for holding buttons "1 miles/hours, " "2 miles/hours, "
+	 final Vector<JButton> l7=new Vector<JButton>(); // for holding buttons "Perform for 5 seconds, " "Perform for 10 seconds, " "Perform for 15 seconds, "
+	 final Vector<JButton> l8=new Vector<JButton>(); // holding buttons for movements
+	 final Vector<JMenu> l9=new Vector<JMenu>();	// for holding options "duration" "trials" "mode" "speed"
+	
+	 JTextField fileName = new JTextField();
+	 Stack<String> lifo = new Stack<String>();
+	 List<String> loopSinMov= new ArrayList<String>();
+	 String s;
+	 Stack<String> ilegalMov = new Stack<String>();
+	 String cur;
+	 boolean flagAdd=false;
+	// Hashtable validMov = new Hashtable();
+	 Hashtable<String, ArrayList<String>> data = new Hashtable<String, ArrayList<String>>();
+	 
+	static List<Node>n;
+	public static List<Edge>ed;
+	static Vector<JButton>b;
+	JMenuBar menuBar;
+	PrintStream ps;
+	HashMap<String,Integer> hm;
+	final JSpinner spinner1=ShowTimeJSpinner("h"); // A single line input field that lets the user select a number or an object value from an ordered sequence. 
+	final JSpinner spinner2=ShowTimeJSpinner("m");
+	final JSpinner spinner3=ShowTimeJSpinner("for"); // used for number of loops
+	static Vector<JCheckBox> l2=new Vector<JCheckBox>();
+	static Vector<JCheckBox> l3=new Vector<JCheckBox>();
+	Vector<JMenu> options=new Vector<JMenu>();
+	int hmindex=0;
+	
+
+	
+	
+	public MenuLayoutDemo2(List<Node> nodes, List<Edge> edges) throws FileNotFoundException{
+		//JOptionPane.showMessageDialog(null,fileName,"Please, lEnter your diary file name ",JOptionPane.PLAIN_MESSAGE);
+		n=nodes;ed=edges; hm=new HashMap<String,Integer>();
+		loopSinMov.add("Sit_to_lie");
+		loopSinMov.add("Sit_to_stand");
+		loopSinMov.add("Stand_to_sit");
+		loopSinMov.add("Lie_to_sit");
+		
+		//validMov.put("Sit_to_lie",new ArrayList<String>("Sit_to_stand","Stand_to_sit","Sit_to_lie"))
+		ArrayList<String> a1= new ArrayList<String>();
+		a1.add("Sit_to_lie");
+		a1.add("Sit_to_stand");
+		a1.add("Stand_to_sit");
+		//a1.add("Sit_to_lie");
+		data.put("Sit_to_lie", a1);
+		ArrayList<String> a2= new ArrayList<String>();
+		a2.add("Sit_to_lie");
+		a2.add("Sit_to_stand");
+		a2.add("Lie_to_sit");
+		data.put("Sit_to_stand", a2);
+		ArrayList<String> a3= new ArrayList<String>();
+		a3.add("Stand_to_sit");
+		a3.add("Lie_to_sit");
+		//a2.add("Lie_to_sit");
+		data.put("Stand_to_sit", a3);
+		// System.out.println(fileName.getText());
+		
+		//ps = new PrintStream(new FileOutputStream("../../Cla_tool/synthesis.txt"));		
+	}
+	
+	
+	/**
+	 * Create the vertical menu with all the templates allowable, and start and stop button
+	 * 
+	 */
+    public JMenuBar createMenuBar() {
+
+        menuBar = new JMenuBar();
+        menuBar.setLayout(new BoxLayout(menuBar, BoxLayout.PAGE_AXIS));
+        b=new Vector<JButton>();
+        System.out.println("ok");
+      
+        for(int i=0;i<n.size();i++)
+        {
+        	if(i==0)
+        	{
+        		menuBar.add(createMenu("start"));	
+        	}
+        	else{
+        		if(i==n.size()-1)
+        		{
+        			//menuBar.add(Box.createHorizontalGlue());
+        			JMenu x=createMenu(""+n.get(i).getName());
+	            	x.setName(""+n.get(i).getName());
+	            	menuBar.add(x); 
+	            	x.setEnabled(false); // initially disable all menus except "start" and "quit"
+	            	menuBar.add(createMenu("quit"));
+	            	
+	            	menuBar.add(createMenu("New Diary"));
+	            	newDiary.setEnabled(false);   // first disable "New Diary" button
+	            	
+	            	menuBar.add(createMenu("Reset"));
+	            	//newDiary.setEnabled(false);   // first disable "New Diary" button
+	            	
+	            	menuBar.add(createMenu("finalize"));
+	            	//bb3.setEnabled(true);   // first disable "finalize" button
+	            	
+	            	
+            	}
+        		else
+        		{
+		        	JMenu x=createMenu(""+n.get(i).getName());
+		        	x.setName(""+n.get(i).getName());
+		        	menuBar.add(x);
+		        
+		        	x.setEnabled(false);
+        		}
+        
+        	
+        		}
+        }
+        menuBar.setBorder(BorderFactory.createMatteBorder(0,0,0,1,Color.darkGray));
+        
+        
+        for(final JButton bb:b) bb.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent actionEvent) {
+                       	// Clear two values.
+            	ps.println(bb.getName());
+            	s=s+bb.getName();
+            	
+            	lifo.add(bb.getName());
+            	
+            }
+        });
+        return menuBar;
+    }
+
+   /**
+    * Create the horizontal menu for the relative menu of @see createMenuBar items
+    * @param title
+    * @return
+ * @throws FileNotFoundException 
+    */
+    public JMenu createMenu(final String title) {
+    	
+        final JMenu m = new HorizontalMenu(title);
+        
+       
+  
+     if(title.compareTo("start")==0) {   // when you click "start"
+    	 
+    	 
+    	 JOptionPane.showMessageDialog(null,fileName,"Enter your diary file name :",JOptionPane.PLAIN_MESSAGE);
+ 		//n=nodes;ed=edges; hm=new HashMap<String,Integer>();
+ 		
+ 		//System.out.println(fileName.getText());
+    	 //System.out.println(lifo.peek());
+    	 s="";
+    	 
+ 		try {
+			ps = new PrintStream(new FileOutputStream("../../Cla_tool/"+"trash"+".txt"));
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}	
+    	 
+    	 System.out.println("is start");
+    	 JButton subject1=new JButton("Claudio");subject1.setName("Claudio");
+    	 JButton subject2=new JButton("Terrell");subject2.setName("Terrell");
+    	 JButton subject3=new JButton("Ashley");subject3.setName("Ashley");
+    	 JButton category1=new JButton("Male");category1.setName("Male");
+    	 JButton category2=new JButton("Female");category2.setName("Female");
+    	 JMenu submenu6=new HorizontalMenu("Protagonist");
+    	 JMenu submenu7=new HorizontalMenu("Sensors involved");
+    	 JMenu submenu8=new HorizontalMenu("Body-part monitored");
+    	 
+    	 JMenu submenu4 = new HorizontalMenu("Subject");
+    	 submenu4.add(subject1);
+    	 submenu4.add(subject2);
+    	 submenu4.add(subject3);
+    	 JMenu submenu5 = new HorizontalMenu("Categories");
+    	 submenu5.add(category1);
+    	 submenu5.add(category2);
+    	 submenu6.add(submenu4);
+    	 submenu6.add(submenu5);
+    	// m.add(submenu6);
+    	 m.add(submenu7);
+    	 m.add(submenu8);
+    	 //m.add(submenu6);
+    	 
+    	 	
+    	 l1.add(subject1);
+    	 l1.add(subject2);
+    	 l1.add(subject3);
+    	 l1.add(category1);
+    	 l1.add(category2);
+    	 
+    	 for(int i=1;i<7;i++){
+    		 JCheckBox jcb = null;
+    		 switch (i)
+    		 {
+	    		 case 1:
+	    			 jcb= new JCheckBox("Right Ankle"); jcb.setName("Right Ankle"); break;
+	    		 case 2: 
+	    			 jcb= new JCheckBox("Waist");jcb.setName("Waist");break;
+	    		 case 3:
+	    			 jcb= new JCheckBox("Right Arm"); jcb.setName("Right Arm");break;	 
+	    		 case 4:
+	    			 jcb= new JCheckBox("Right Wrist"); jcb.setName("Right Wrist");break;
+	    		 case 5 :
+	    			 jcb= new JCheckBox("Left Thigh"); jcb.setName("Left Thigh");break;
+	    		 case 6 :
+	    			 jcb= new JCheckBox("Right Thigh"); jcb.setName("Right Thigh");break;
+	    		 default: 
+	    			 break;
+    		 }
+    	      jcb.setMnemonic(KeyEvent.VK_G); 
+    	      jcb.setSelected(true);
+    	      
+    	     submenu8.add(jcb);
+    	     jcb.addItemListener(this);
+    	     l2.add(jcb);
+    	    
+    	   }
+    	 for(int ir=1;ir<7;ir++){
+    		 JCheckBox jcb2 = null;
+    		 switch (ir)
+    		 {
+				 case 1:
+					 jcb2= new JCheckBox("Acc X"); jcb2.setName("Acc X"); break;
+				 case 2: 
+					 jcb2= new JCheckBox("Acc Y");jcb2.setName("Acc Y");break;
+				 case 3:
+					 jcb2= new JCheckBox("Acc Z"); jcb2.setName("Acc Z");break;	 
+				 case 4:
+					 jcb2= new JCheckBox("Gyr X"); jcb2.setName("Gyr X");break;
+				 case 5 :
+					 jcb2= new JCheckBox("Gyr Y"); jcb2.setName("Gyr Y");break;
+				 case 6 :
+					 jcb2= new JCheckBox("Gyr Z"); jcb2.setName("Gyr Z");break;
+				 default: 
+					 break;
+    		 }
+  	      
+  	       jcb2.setMnemonic(KeyEvent.VK_G); 
+  	       jcb2.setSelected(true);
+  	     
+  	     submenu7.add(jcb2);
+  	     jcb2.addItemListener(this);
+  	     l3.add(jcb2);
+  	    
+  	   }
+
+    	m.add("Hour");
+    	 m.add( spinner1);
+    	 m.add("minute");
+    	 m.add( spinner2);
+    	 m.add(submenu6);
+
+    	 for(final  JButton y:l1)
+    	 {
+			y.addActionListener(new ActionListener() 
+			{
+		    @Override
+		    public void actionPerformed(ActionEvent actionEvent) {
+		    	
+		    	for(final  JButton y:l1)
+		    	{
+		    	  y.setEnabled(false);   // once clicked, disable all the options
+		    	}
+		    	bb3.setEnabled(true);  // enable "finalize" button
+		    	
+		    	
+		    	if (StartMessageGenerate)
+		    	{
+			      ps.print("START , "+y.getName()+" , "+data(System.currentTimeMillis()));
+			      lifo.add("START , "+y.getName()+" , "+data(System.currentTimeMillis()));
+			      ps.println();
+			      
+			      s=s+"START , "+y.getName()+" , "+data(System.currentTimeMillis()) +System.getProperty("line.separator");
+			     
+				  int MenuNum = menuBar.getMenuCount(); // get the total number of menus in  menuBar
+			      
+			      for (int i =1; i<=MenuNum-2; i++ ) // all menus between start and quit
+			      {
+			    	  JMenu fileMenu = menuBar.getMenu( i ); 
+				      fileMenu.setEnabled(true); // enable them back once user clicks
+			      }
+			      JMenu fileMenu = menuBar.getMenu( 0 ); 
+			      fileMenu.setEnabled(false); // unenable start button
+			      
+			      int count = m.getItemCount();
+			      for (int i = 0; i<3; i++ )
+			      {
+			    	  m.getItem(i).setEnabled(false);   // disable other options once subject is chosen
+	  
+			      }
+			      spinner1.setEnabled(false);
+		    	  spinner2.setEnabled(false);
+		    	  
+			      forEnding.setEnabled(false); // end loop button is initially disabled until start loop in clicked
+			      
+		    	} 
+		    	else 
+		    	{	
+		    	}
+		    	
+		    	StartMessageGenerate = false; 
+		    	   
+		    }
+		});
+		
+    	 }
+    	 
+     } 
+     
+     else{ 
+    	 
+    	 
+		 
+		 if(title.compareTo("finalize")==0){ 
+			
+    		 m.add(bb3); // add "Finalize button"
+    		// bb3.setVisible(true);
+    		 bb3.addActionListener(new ActionListener() {
+    	 		    
+    			 @Override
+    	      public void actionPerformed(ActionEvent actionEvent) {
+    				 
+    				 if(loopcounter !=0)
+    					 JOptionPane.showMessageDialog(null,"You must close "+ Integer.toString(loopcounter) +" loop");
+    				 else
+    				 {
+    				// System.out.println(lifo.peek());
+    		    	 
+    				 bb3.setEnabled(false);	  // button can be clicked only once
+    		    	 
+    				 ps.println();
+    		    	 s=s+System.getProperty("line.separator");
+    		    	 ps.print("STOP! "+ " * "+spinner1.getValue()+":"+spinner2.getValue()+ "{");
+    		    	 lifo.push("STOP!");
+    		    	 s=s+"STOP! "+ " * "+spinner1.getValue()+":"+spinner2.getValue()+ "{";
+    		    	 for(JCheckBox k:l2) {if(k.isSelected()) s=s+k.getName()+", ";ps.print(k.getName()+", ");}
+    		    	 ps.print("} , <");
+    		    	 s=s+"} , <";
+    		    	 for(JCheckBox k:l3) {if(k.isSelected()) s=s+k.getName()+", ";ps.print(k.getName()+", ");}
+    		    	 ps.println(">");
+    		    	 s=s+">";
+    		    	 
+    		    	// while (!ilegalMov.isEmpty())
+    		    	// {
+    		    	//	 s=s+System.getProperty("line.separator")+ilegalMov.pop();
+    		    	// }
+    		    	 
+    		    	// s=s+System.getProperty("line.separator")+cur;
+    		    	// s=s+System.getProperty("line.separator")+loopSinMov.contains(cur);
+    		    	 System.out.println(data.get(cur).toString());
+    		    	// System.out.println(ilegalMov.peek());
+    		    	// System.out.println(data.get(cur).contains(ilegalMov.peek()));
+    		    	 
+                     ps.print(s);
+                    // if(lifo.pop().equals("STOP!"))
+                    // {
+                     Writer output=null;
+                     File file = new File("../../Cla_tool/"+fileName.getText()+".txt");
+                     
+                     //File file = new File("write.txt");
+                     
+                     try {
+						output = new BufferedWriter(new FileWriter(file));
+					
+						output.write(s);
+					
+						output.close();
+					} catch (IOException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+                   //  } 
+                     s="";
+                     
+                     StartMessageGenerate = false;
+                     
+                     JOptionPane.showMessageDialog(null,fileName.getText()+ " was created successfully !");
+    		    	 ps.close();
+ 			         reset.setEnabled(true);
+    		    	// newDiary.setEnabled(true);   // enable "New Diary" button
+    		    	 
+    		    	 JMenu fileMenu = menuBar.getMenu( 0); 
+        			 fileMenu.setEnabled(false);  // enable start menu
+        			 for(final  JButton y:l1)
+     		    	{
+     		    	  y.setEnabled(false);   // enable options in start menu
+     		    	}
+        			 //bb3.setEnabled(true); // set "finalize" button enabled
+        			 
+ 					for(final  JButton y:l4)
+ 			    	{
+ 			    	  y.setEnabled(false);   
+ 			    	}
+ 					for(final  JButton y:l5)
+ 			    	{
+ 			    	  y.setEnabled(false);   
+ 			    	}
+ 					for(final  JButton y:l6)
+ 			    	{
+ 			    	  y.setEnabled(false);   
+ 			    	} 
+        			 
+ 					for(final  JButton y:l7)
+ 						    	{
+ 				  	 y.setEnabled(false);   
+ 			    	} 
+ 					
+ 					 
+ 					
+ 					
+    				/* 
+ 					for(int i=2;i<menuBar.getComponentCount();i++){  // always make start, start loop, end loop, quit, finalize, new diary visible
+						//first and last indices in MenuBar.getComponent are resserved for start and quit buttons,which need to be visualized anytime
+						
+ 						menuBar.getMenu(i-2).setEnabled(false);
+						
+							menuBar.getComponent(i).setVisible(false);
+							newDiary.setEnabled(true);
+							menuBar.repaint();
+ 					}
+        			 */
+    				/* 
+    				 *try{
+    					 String temp = data(System.currentTimeMillis()) ;
+    					 String[] temp2 = temp.split(":");
+    					 
+    					 String temp3;
+    					 String temp4 = "";
+    					 for (int i = 0; i < temp2.length; i++){
+    						 temp3 = temp2[i];
+    						 temp4 = temp4 + temp3;
+    					 }
+    				 ps = new PrintStream(new FileOutputStream("../../Cla_tool/synthesis" +temp4 + ".txt"));	
+    				 
+    				 }
+    				 catch (FileNotFoundException e){
+    					 e.printStackTrace();
+    				 }
+    				 */
+ 					
+ 					//JOptionPane.showMessageDialog(null,fileName,"Enter your diary file name :",JOptionPane.PLAIN_MESSAGE);
+			 		//n=nodes;ed=edges; hm=new HashMap<String,Integer>();
+			 		
+			 		//System.out.println(fileName.getText());
+			 	/*	
+			 		try {
+						ps = new PrintStream(new FileOutputStream("../../Cla_tool/"+fileName.getText()+".txt"));
+					} catch (FileNotFoundException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}	
+			 		*/
+ 					forStarting.setEnabled(false);// disable loop menu
+ 					forEnding.setEnabled(false); // disable end loop menu
+    				newDiary.setEnabled(true);
+    				 
+    				 
+    				 loopcounter = 0;		 // set loop counter back to 0
+    				 for(final  JButton y:l8)
+ 			    	{
+ 			    	  y.setEnabled(false);   // once clicked, enable all movement buttons
+ 			    	}
+    				 //StartMessageGenerate= true;
+    				 
+    				 for(final  JMenu y:l9)
+ 			    	{
+ 			    	  y.setEnabled(false);   // once clicked, disable all the buttons so that no more clicks can be made
+ 			    	}
+    		    	 
+    		    	 
+    				 }
+    			 }
+    		 });
+    		 
+		 }
+		 
+		 else if(title.compareTo("New Diary")==0){ 
+			 
+    		 m.add(newDiary);
+    		 newDiary.addActionListener(new ActionListener() {
+    			 @Override
+    	 		    public void actionPerformed(ActionEvent actionEvent) {
+    				 
+    				/* JOptionPane.showMessageDialog(null,fileName,"Enter your diary file name :",JOptionPane.PLAIN_MESSAGE);
+    			 		//n=nodes;ed=edges; hm=new HashMap<String,Integer>();
+    			 		
+    			 		//System.out.println(fileName.getText());
+    			 		
+    			 		try {
+    						ps = new PrintStream(new FileOutputStream("../../Cla_tool/"+fileName.getText()+".txt"));
+    					} catch (FileNotFoundException e) {
+    						// TODO Auto-generated catch block
+    						e.printStackTrace();
+    					}	
+    				 */
+    				 JMenu fileMenu = menuBar.getMenu( 0); 
+        			 fileMenu.setEnabled(true);  // enable start menu
+        			 
+        			 
+        			 for (int i = 0; i<3; i++ )
+        			  {
+        				 fileMenu.getItem(i).setEnabled(true);   // re-enable other options in start menu since it was disabled after "start"
+        	
+        			 }
+        			 spinner1.setEnabled(true);
+        		  	  spinner2.setEnabled(true);
+        			 for(final  JButton y:l1)
+     		    	{
+     		    	  y.setEnabled(true);   // enable options in start menu
+     		    	}
+        			 //bb3.setEnabled(true); // set "finalize" button enabled
+        			 
+ 					for(final  JButton y:l4)
+ 			    	{
+ 			    	  y.setEnabled(true);   
+ 			    	}
+ 					for(final  JButton y:l5)
+ 			    	{
+ 			    	  y.setEnabled(true);   
+ 			    	}
+ 					for(final  JButton y:l6)
+ 			    	{
+ 			    	  y.setEnabled(true);   
+ 			    	} 
+        			 
+ 					for(final  JButton y:l7)
+ 						    	{
+ 				  	 y.setEnabled(true);   
+ 			    	} 
+    				 
+ 					forStarting.setEnabled(true);// enable loop menu
+ 					forEnding.setEnabled(true); // enable end loop menu
+ 					
+ 					for(int i=3;i<menuBar.getComponentCount()-1;i++){  // always make start, start loop, end loop, quit, finalize, new diary visible
+						//first and last indices in MenuBar.getComponent are resserved for start and quit buttons,which need to be visualized anytime
+						
+ 						menuBar.getMenu(i-2).setEnabled(false);
+						
+							menuBar.getComponent(i).setVisible(true);
+							menuBar.repaint();
+ 					}
+        			 
+    				/* 
+    				 *try{
+    					 String temp = data(System.currentTimeMillis()) ;
+    					 String[] temp2 = temp.split(":");
+    					 
+    					 String temp3;
+    					 String temp4 = "";
+    					 for (int i = 0; i < temp2.length; i++){
+    						 temp3 = temp2[i];
+    						 temp4 = temp4 + temp3;
+    					 }
+    				 ps = new PrintStream(new FileOutputStream("../../Cla_tool/synthesis" +temp4 + ".txt"));	
+    				 
+    				 }
+    				 catch (FileNotFoundException e){
+    					 e.printStackTrace();
+    				 }
+    				 */
+ 					
+ 					JOptionPane.showMessageDialog(null,fileName,"Enter your diary file name :",JOptionPane.PLAIN_MESSAGE);
+			 		//n=nodes;ed=edges; hm=new HashMap<String,Integer>();
+			 		
+			 		//System.out.println(fileName.getText());
+			 	/*	
+			 		try {
+						ps = new PrintStream(new FileOutputStream("../../Cla_tool/"+fileName.getText()+".txt"));
+					} catch (FileNotFoundException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}	
+			 		*/
+    				 //forStarting.setEnabled(true);
+    				 newDiary.setEnabled(false);
+    				 forEnding.setEnabled(true);
+    				 loopcounter = 0;		 // set loop counter back to 0
+    				 for(final  JButton y:l8)
+ 			    	{
+ 			    	  y.setEnabled(true);   // once clicked, enable all movement buttons
+ 			    	}
+    				 StartMessageGenerate= true;
+    				 
+    				 for(final  JMenu y:l9)
+ 			    	{
+ 			    	  y.setEnabled(false);   // once clicked, disable all the buttons so that no more clicks can be made
+ 			    	}
+    			 }
+    		 });
+    		 
+		 }
+		 
+ else if(title.compareTo("Reset")==0){ 
+			 
+    		 m.add(reset);
+    		 reset.addActionListener(new ActionListener() {
+    			 @Override
+    	 		    public void actionPerformed(ActionEvent actionEvent) {
+    				 
+    				/* JOptionPane.showMessageDialog(null,fileName,"Enter your diary file name :",JOptionPane.PLAIN_MESSAGE);
+    			 		//n=nodes;ed=edges; hm=new HashMap<String,Integer>();
+    			 		
+    			 		//System.out.println(fileName.getText());
+    			 		
+    			 		try {
+    						ps = new PrintStream(new FileOutputStream("../../Cla_tool/"+fileName.getText()+".txt"));
+    					} catch (FileNotFoundException e) {
+    						// TODO Auto-generated catch block
+    						e.printStackTrace();
+    					}	
+    				 */
+    				 JMenu fileMenu = menuBar.getMenu( 0); 
+        			 fileMenu.setEnabled(true);  // enable start menu
+        			 for (int i = 0; i<3; i++ )
+        			      {
+        				    fileMenu.getItem(i).setEnabled(true);   // re-enable other options in start menu since it was disabled after "start"
+        	      	  
+        				 }
+        				 spinner1.setEnabled(true);
+        				 spinner2.setEnabled(true);
+        			 
+        			 for(final  JButton y:l1)
+     		    	{
+     		    	  y.setEnabled(true);   // enable options in start menu
+     		    	}
+        			// bb3.setEnabled(true); // set "finalize" button enabled
+        			 
+ 					for(final  JButton y:l4)
+ 			    	{
+ 			    	  y.setEnabled(true);   
+ 			    	}
+ 					for(final  JButton y:l5)
+ 			    	{
+ 			    	  y.setEnabled(true);   
+ 			    	}
+ 					for(final  JButton y:l6)
+ 			    	{
+ 			    	  y.setEnabled(true);   
+ 			    	} 
+        			 
+ 					for(final  JButton y:l7)
+ 					{
+ 					  y.setEnabled(true);   
+ 			    	}
+    				 
+ 					
+ 					
+ 					for(int i=3;i<menuBar.getComponentCount()-1;i++){  // always make start, start loop, end loop, quit, finalize, new diary visible
+						//first and last indices in MenuBar.getComponent are resserved for start and quit buttons,which need to be visualized anytime
+						
+ 						menuBar.getMenu(i-2).setEnabled(false);
+						
+							menuBar.getComponent(i).setVisible(true);
+							menuBar.repaint();
+ 					}
+        			 
+    				/* 
+    				 *try{
+    					 String temp = data(System.currentTimeMillis()) ;
+    					 String[] temp2 = temp.split(":");
+    					 
+    					 String temp3;
+    					 String temp4 = "";
+    					 for (int i = 0; i < temp2.length; i++){
+    						 temp3 = temp2[i];
+    						 temp4 = temp4 + temp3;
+    					 }
+    				 ps = new PrintStream(new FileOutputStream("../../Cla_tool/synthesis" +temp4 + ".txt"));	
+    				 
+    				 }
+    				 catch (FileNotFoundException e){
+    					 e.printStackTrace();
+    				 }
+    				 */
+ 					
+ 					//JOptionPane.showMessageDialog(null,fileName,"Enter your diary file name :",JOptionPane.PLAIN_MESSAGE);
+			 		//n=nodes;ed=edges; hm=new HashMap<String,Integer>();
+			 		
+			 		//System.out.println(fileName.getText());
+			 	/*	
+			 		try {
+						ps = new PrintStream(new FileOutputStream("../../Cla_tool/"+fileName.getText()+".txt"));
+					} catch (FileNotFoundException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}	
+			 		*/
+    				 s="";
+    				 //newDiary.setEnabled(false);
+    				 forStarting.setEnabled(true);
+    				 forEnding.setEnabled(true);
+    				 loopcounter = 0;
+    				 for(final  JButton y:l8)
+ 			    	{
+ 			    	  y.setEnabled(true);   // once clicked, enable all movement buttons
+ 			    	}
+    				 StartMessageGenerate= true;
+    				 
+    				 for(final  JMenu y:l9)
+ 			    	{
+ 			    	  y.setEnabled(false);   // once clicked, disable all the buttons so that no more clicks can be made
+ 			    	}
+    			 }
+    		 });
+    		 
+		 }
+		 
+		 
+		 
+		 else if(title.compareTo("quit")==0){  // when user clicks "quit"
+    		 final JButton close=new JButton("Close"); 
+    		 
+    		 m.add(close);
+    		 
+    		 
+    		 close.addActionListener(new ActionListener() {
+    	 		    
+    			 @Override
+ 		    public void actionPerformed(ActionEvent actionEvent) {
+    
+ 			 System.exit(0);
+ 		    }
+ 		});
+    	
+    	 }
+    	 
+    	 else if (title.compareTo("Start Loop")==0){    // read the button with "start loop"
+    		 
+    		spinner3.setValue(2);
+        	 m.add(forStarting);m.add(spinner3);
+        	 //bb3.setVisible(true);
+        	 forStarting.addActionListener(new ActionListener(){
+        		 public void actionPerformed(ActionEvent actionEvent) { // action listener for the "loop" button
+        		  
+        			 
+        		  menuBar.repaint();
+        		  ps.println("");
+    		      ps.println("["+spinner3.getValue());
+    		     
+    		      s=s+System.getProperty("line.separator")+"["+spinner3.getValue();
+    		      lifo.add("["+spinner3.getValue());
+    		      
+    		      loopcounter++;
+    		      flagAdd=true;
+    		      
+    		      forEnding.setEnabled(true);
+    		      
+    		      //int MenuNum = menuBar.getMenuCount();
+    		      //JMenu fileMenu = menuBar.getMenu( MenuNum-1 ); 
+			      //fileMenu.setEnabled(false); // disable "quit" whenever a loop starts
+    		      
+    		    }});
+        	
+    	 }
+    	 
+    	 else if (title.compareTo("End Loop")==0){     // read the button with "end loop"
+    		 m.add(forEnding);
+    		 
+    		 forEnding.addActionListener(new ActionListener(){
+        		
+				public void actionPerformed(ActionEvent actionEvent) {
+        	     //forEnding.setEnabled(false);// button can be clicked only once
+        	     //
+				String s1=lifo.get(lifo.size()-1);
+				//lifo.pop();
+				String s2=lifo.get(lifo.size()-2);
+				System.out.println(s2);
+				
+				//lifo.pop();
+        	   if( loopSinMov.contains(s1)&& s2.startsWith("[") )
+        	     JOptionPane.showMessageDialog(null,"Impossible movement. Please, choose other movement to continue");
+        	   else if( loopSinMov.contains(cur)&& loopcounter>0)
+        	     {
+        	    	 //JOptionPane.showMessageDialog(null,"Impossible movement");
+        	    	 if(!ilegalMov.isEmpty())
+        	    	 {
+        	    		 if(data.get(cur).contains(ilegalMov.pop()))
+        	    			 JOptionPane.showMessageDialog(null,"Impossible movement. Please, choose other movement to continue");
+        	    	 }		 
+        	     }
+        	     
+        	     else
+        	     {
+			    //ps.print(lifo.);
+			    
+					//String content = ps.toString();
+				//System.out.println(content);
+        		 ps.println("");
+        		 ps.println("]");
+        		 
+        		 s=s+System.getProperty("line.separator")+"]";
+        		// lifo.add("]");
+   		      
+        		 
+        		 loopcounter --; 
+        		 if (loopcounter >0){}// if still greater than 0, means still have open loops needed to close
+        		 else
+        		 {
+        			 forEnding.setEnabled(false); 
+        			 int MenuNum = menuBar.getMenuCount();
+        			 JMenu fileMenu = menuBar.getMenu( MenuNum-1 ); 
+        			 fileMenu.setEnabled(true); // disable "quit" whenever a loop starts
+        		 }
+        		 	menuBar.repaint();
+        		 }
+				}
+        	 });
+    	 }
+    	 
+    	 
+    	 else { // when you click movement button		  		
+   
+    		 
+    		 
+    		 
+	        final JMenu submenu10 = new HorizontalMenu("Speed");
+	        
+	        submenu10.setEnabled(false);
+	        
+	        final JButton s1=new JButton("1 miles/hours, ");
+	        submenu10.add(s1);
+	        s1.addActionListener(new ActionListener() {
+			    @Override
+			    public void actionPerformed(ActionEvent actionEvent) {
+			      ps.print("S,1,");
+			      s+="S,1,";
+			      for(final  JButton y:l6)
+			    	{
+			    	  y.setEnabled(false);   // once clicked, disable all the buttons so that no more clicks can be made
+			    	}
+			    }
+			});
+	        final JButton s2=new JButton("2 miles/hours, ");
+	        submenu10.add(s2);
+	        s2.addActionListener(new ActionListener() {
+			    @Override
+			    public void actionPerformed(ActionEvent actionEvent) {
+			      ps.print("S,2,");
+			      s+="S,2,";
+			      for(final  JButton y:l6)
+			    	{
+			    	  y.setEnabled(false);   // once clicked, disable all the buttons so that no more clicks can be made
+			    	}
+			    }
+			});
+	        
+	        
+	        final JMenu submenu0 = new HorizontalMenu("Duration");
+	        submenu0.setEnabled(false);
+	        final JButton d5=new JButton("Perform for 5 seconds, ");
+	        submenu0.add(d5);
+	        d5.addActionListener(new ActionListener() {
+			    @Override
+			    public void actionPerformed(ActionEvent actionEvent) {
+			      ps.print("D,5,");
+			      s+="D,5,";
+			      for(final  JButton y:l7)
+			    	{
+			    	  y.setEnabled(false);   // once clicked, disable all the buttons so that no more clicks can be made
+			    	}
+			    }
+			});
+	        
+	        
+	        final JButton d10=new JButton("Perform for 10 seconds, ");
+	        submenu0.add(d10);
+	        d10.addActionListener(new ActionListener() {
+			    @Override
+			    public void actionPerformed(ActionEvent actionEvent) {
+			      ps.print("D,10,");
+			      s+="D,10,";
+			      for(final  JButton y:l7)
+			    	{
+			    	  y.setEnabled(false);   // once clicked, disable all the buttons so that no more clicks can be made
+			    	}
+			    }
+			});
+	        
+	        final JButton d15=new JButton("Perform for 15 seconds, ");
+	        submenu0.add(d15);
+	        d10.addActionListener(new ActionListener() {
+			    @Override
+			    public void actionPerformed(ActionEvent actionEvent) {
+			      ps.print("D,15,");
+			      s+="D,15,";
+			      for(final  JButton y:l7)
+			    	{
+			    	  y.setEnabled(false);   // once clicked, disable all the buttons so that no more clicks can be made
+			    	}
+			    }
+			});
+	        
+	        
+	        
+	        final JMenu submenu1 = new HorizontalMenu("Trials");
+	        submenu1.setEnabled(false);
+	        final JButton t5=new JButton("Repeat 5 times, ");
+	        submenu1.add(t5);
+	        t5.addActionListener(new ActionListener() {
+			    @Override
+			    public void actionPerformed(ActionEvent actionEvent) {
+			      ps.print("T,5,");
+			      s+="T,5,";
+			      for(final  JButton y:l4)
+			    	{
+			    	  y.setEnabled(false);   // once clicked, disable all the buttons so that no more clicks can be made
+			    	}
+			    }
+			});
+	        
+	        final JButton t10=new JButton("Repeat 10 times, ");
+	        submenu1.add(t10);
+	        t10.addActionListener(new ActionListener() {
+			    @Override
+			    public void actionPerformed(ActionEvent actionEvent) {
+			      ps.print("T,10,");
+			      s+="T,10,";
+			      for(final  JButton y:l4)
+			    	{
+			    	  y.setEnabled(false);   // once clicked, disable all the buttons so that no more clicks can be made
+			    	}
+			    }
+			});
+	        final JButton t25=new JButton("Repeat 25 times, ");
+	        submenu1.add(t25);
+	        //m.add(submenu1);
+	        t25.addActionListener(new ActionListener() {
+			    @Override
+			    public void actionPerformed(ActionEvent actionEvent) {
+			      ps.print("T,25,");
+			      s+="T,25,";
+			      for(final  
+			    		  JButton y:l4)
+			    	{
+			    	  y.setEnabled(false);   // once clicked, disable all the buttons so that no more clicks can be made
+			    	}
+			    }
+			});
+	        
+	        final JButton tRand=new JButton("Repeat Random times, ");
+	        submenu1.add(tRand);
+	        tRand.addActionListener(new ActionListener() {
+			    @Override
+			    public void actionPerformed(ActionEvent actionEvent) {
+			     int tRand=(int) (100*Math.random());
+			    	ps.print("T,"+tRand+",");
+			    	s+="T,"+tRand+",";
+			    	for(final  JButton y:l4)
+			    	{
+			    	  y.setEnabled(false);   // once clicked, disable all the buttons so that no more clicks can be made
+			    	}
+			    }
+			}); 
+	        
+	        
+	
+	    	final JMenu submenu2 = new HorizontalMenu("Mode");
+	        submenu2.setEnabled(false);
+	        final JButton best=new JButton("Best ");
+	        submenu2.add(best);
+	        best.addActionListener(new ActionListener() {
+			    @Override
+			    public void actionPerformed(ActionEvent actionEvent) {
+			     ps.print("/ B,");
+			     s+="/ B,";
+			     for(final  JButton y:l5)
+			    	{
+			    	  y.setEnabled(false);   // once clicked, disable all the buttons so that no more clicks can be made
+			    	}
+			    }
+			}); 
+	        
+	        JMenu submenuMode = new HorizontalMenu("Other Mode");
+	        final JButton random=new JButton("Random execution");
+	        submenuMode.add(random);
+	        random.addActionListener(new ActionListener() {
+			    @Override
+			    public void actionPerformed(ActionEvent actionEvent) {
+			     ps.print("/ REx,");
+			     s+="/ REx,";
+			     for(final  JButton y:l5)
+			    	{
+			    	  y.setEnabled(false);   // once clicked, disable all the buttons so that no more clicks can be made
+			    	}
+			    }
+			}); 
+	         
+	        final JButton randomE=new JButton("Random epsilon");
+	        submenuMode.add(randomE);
+	        randomE.addActionListener(new ActionListener() {
+			    @Override
+			    public void actionPerformed(ActionEvent actionEvent) {
+			     ps.print("/ REps,");
+			     s+="/ REps,";
+			     for(final  JButton y:l5)
+			    	{
+			    	  y.setEnabled(false);   // once clicked, disable all the buttons so that no more clicks can be made
+			    	}
+			    }
+			}); 
+	        submenu2.add(submenuMode);
+        
+	        l4.add(t5);
+	        l4.add(t10);
+	        l4.add(t25);
+	        l4.add(tRand);
+	        
+	        l5.add(best);
+	        l5.add(random);
+	        l5.add(randomE);
+	        
+	        l6.add(s1);
+	        l6.add(s2);
+	        
+	        l7.add(d5);
+	        l7.add(d10);
+	        l7.add(d15);
+	        
+	        l9.add(submenu0);
+	        //l9.add(submenu1);
+	        l9.add(submenu2);
+	        l9.add(submenu10);
+	        
+	        final JButton x=new JButton("Do it and select the mode");
+	        x.setName("Do it and select the mode");
+			 m.add(x);
+			 hm.put(title,hmindex+1);
+			 hmindex++;
+			 l8.add(x);
+	        
+	        m.add(submenu10);
+	        m.add(submenu2);
+	        m.add(submenu0);
+	        //m.add(submenu1);
+	        //m.add(submenu10);
+        
+	        // button click event
+	      /*  final JButton x=new JButton(title);
+	        x.setName(title);
+			 m.add(x);
+			 hm.put(title,hmindex+1);
+			 hmindex++;
+			 l8.add(x);
+			*/ 
+			 x.addActionListener(new ActionListener(){ // every time click a motion button, menus will be activated, and it can only be clicked once.  			 
+	
+				@SuppressWarnings("unused")
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					
+					 for(final  JButton y:l8)
+	 			    	{
+	 			    	  y.setEnabled(true);   // once clicked, enable all movement buttons
+	 			    	}
+					x.setEnabled(false);
+					
+					submenu0.setEnabled(true);
+					//submenu1.setEnabled(true);
+					submenu2.setEnabled(true);
+					submenu10.setEnabled(true);
+					for(final  JButton y:l4)
+			    	{
+			    	  y.setEnabled(true);   
+			    	}
+					for(final  JButton y:l5)
+			    	{
+			    	  y.setEnabled(true);   
+			    	}
+					for(final  JButton y:l6)
+			    	{
+			    	  y.setEnabled(true);   
+			    	}
+					
+					// TODO Auto-generated method stub
+					ps.println();
+					ps.print(title+ " ");
+					if(flagAdd==true)
+					{
+						ilegalMov.push(title);
+						flagAdd=false;
+					}
+					
+					cur=title;
+					s+=System.getProperty("line.separator")+title+" ";
+					
+					lifo.add(title);
+					
+					for(int i=3;i<menuBar.getComponentCount()-3;i++){  // always make start, start loop, end loop, quit, finalize, new diary visible
+						//first and last indices in MenuBar.getComponent are resserved for start and quit buttons,which need to be visualized anytime
+						
+						 String name=menuBar.getComponent(i).getName();
+						
+							menuBar.getComponent(i).setVisible(false);
+						 boolean allowed=false;
+					for(Edge e1:ed){
+						
+						if(e1.getV1().equals(title)&&(e1.getV2().equals(name))) {
+							allowed=true; 
+							menuBar.getComponent(i).setVisible(true);
+							
+							
+							
+							menuBar.repaint();
+						}
+						
+						
+					}
+						
+					  
+					}
+					if (loopcounter == 0){}
+					else{
+					JMenu fileMenu = menuBar.getMenu(2); 
+		   		    fileMenu.setEnabled(true); // only when one action is selected, enable " end loop" button
+					}
+				}
+				 
+			 });
+        
+        
+        //rules the allowed length of movements
+        //every movements category (allowing speed or trial or duration or combinations of those) has a value   
+        
+       if(hm.get(title)<12) {submenu10.setVisible(false);submenu0.setVisible(false);}
+        else if(hm.get(title)<15) submenu10.setVisible(false);
+       // else if(hm.get(title)==6) submenu10.setVisible(false);
+        //else {if(hm.get(title)<22) {submenu10.setVisible(false);submenu1.setVisible(false);}
+        else {if(hm.get(title)<23) {submenu10.setVisible(false);submenu1.setVisible(false);}
+         
+        } }//end else
+     }
+          
+        return m;
+    }
+
+    
+    
+    
+    @SuppressWarnings("unused")
+	protected String data(long currentTimeMillis) {
+    	long yourmilliseconds = currentTimeMillis;
+        SimpleDateFormat sdf = new SimpleDateFormat("MMM dd,yyyy HH:mm");
+
+        Date resultdate = new Date(yourmilliseconds);
+        
+		return resultdate.toString();
+	}
+
+	public void actionPerformed(ActionEvent e) {
+       System.out.println(e.getSource());
+    } 
+    
+    
+    
+    /**
+     * Create the GUI and show it.  For thread safety,
+     * this method should be invoked from the
+     * event-dispatching thread.
+     * @throws FileNotFoundException 
+     */
+    private static void createAndShowGUI() throws FileNotFoundException {
+        //Create and set up the window.
+        JFrame frame = new JFrame("MenuLayoutDemo");
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        
+       
+        //Create and set up the content pane.
+        MenuLayoutDemo2 demo = new MenuLayoutDemo2(n,ed);
+        Container contentPane = frame.getContentPane();
+        contentPane.setBackground(Color.white); //contrasting bg
+        contentPane.add(demo.createMenuBar(),
+                        BorderLayout.LINE_START);
+       
+        
+        //contentPane.add(k);
+        
+                //Display the window.
+        frame.setSize(500, 700);  
+        frame.setVisible(true);
+    }
+
+    
+    public void start() {
+        //Schedule a job for the event-dispatching thread:
+        //creating and showing this application's GUI.
+        javax.swing.SwingUtilities.invokeLater(new Runnable() {
+            public void run() {
+                try {
+					createAndShowGUI();
+				} catch (FileNotFoundException ex) {
+					// TODO Auto-generated catch block
+					ex.printStackTrace();
+				}
+            }
+        });
+    }
+
+    @SuppressWarnings("serial")
+	class HorizontalMenu extends JMenu {
+        HorizontalMenu(String label) {
+            super(label);
+            JPopupMenu pm = getPopupMenu();
+            pm.setLayout(new BoxLayout(pm, BoxLayout.LINE_AXIS));
+        }
+
+        public Dimension getMinimumSize() {
+            return getPreferredSize();
+        }
+
+        public Dimension getMaximumSize() {
+            return getPreferredSize();
+        }
+
+        public void setPopupMenuVisible(boolean b) {
+            boolean isVisible = isPopupMenuVisible();
+            if (b != isVisible) {
+                if ((b==true) && isShowing()) {
+                    //Set location of popupMenu (pulldown or pullright).
+                    //Perhaps this should be dictated by L&F.
+                    int x = 0;
+                    int y = 0;
+                    Container parent = getParent();
+                    if (parent instanceof JPopupMenu) {
+                        x = 0;
+                        y = getHeight();
+                    } else {
+                        x = getWidth();
+                        y = 0;
+                    }
+                    getPopupMenu().show(this, x, y);
+                } else {
+                    getPopupMenu().setVisible(false);
+                }
+            }
+        }
+    }
+
+	@Override
+	public void itemStateChanged(ItemEvent arg0) {		
+	}
+	
+	@SuppressWarnings("unused")
+	public JSpinner ShowTimeJSpinner(String h){
+		 
+JSpinner spinner=null;
+		 if(h.equals("h")){
+		 spinner = new JSpinner((new SpinnerNumberModel(0, 0, 23, 1)));
+		 
+		 
+		 }
+		 
+		 else 
+			 spinner = new JSpinner((new SpinnerNumberModel(0, 0, 59, 1)));
+			 Integer currentValue = (Integer)spinner.getValue();
+		return spinner;
+		 }
+	
+}
