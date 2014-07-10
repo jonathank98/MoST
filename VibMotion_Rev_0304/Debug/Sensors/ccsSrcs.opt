@@ -1,0 +1,1 @@
+"../Sensors/gpio.c" "../Sensors/pmm.c" "../Sensors/uart.c" "../Sensors/uart_baudrate.c" "../Sensors/ucs.c" "../Sensors/wdt.c" 

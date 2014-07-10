@@ -1,0 +1,1 @@
+"./HAL/I2C.obj" "./Sensors/wdt.obj" "./Sensors/ucs.obj" "./Sensors/uart_baudrate.obj" "./Sensors/uart.obj" "./Sensors/pmm.obj" "./Sensors/gpio.obj" "./main.obj" "./BasicSettings.obj" "../lnk_msp430f5528.cmd" -l"libc.a" 
