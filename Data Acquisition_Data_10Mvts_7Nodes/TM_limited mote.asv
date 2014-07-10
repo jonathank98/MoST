@@ -1,0 +1,197 @@
+%load samples from split files
+%select each sample using Annotation files
+%put it into DTW funtion
+%save results in DTW_results folder
+clear;
+mote_list=[1,1,1,1];
+
+annotations_data=textread('annotations/m0001_s01_m01.txt','%n');
+if ([1,0,0,0]*mote_list')
+    split_data_n1=textread('split/m0001_s01_m01_n01.txt','%n');end
+if ([0,1,0,0]*mote_list')
+    split_data_n2=textread('split/m0001_s01_m01_n02.txt','%n');end
+if([0,0,1,0]*mote_list')
+    split_data_n3=textread('split/m0001_s01_m01_n03.txt','%n');end
+if([0,0,0,1]*mote_list')
+    split_data_n4=textread('split/m0001_s01_m01_n04.txt','%n');end
+for i=1:size(annotations_data)/4
+    sample_length(i)=annotations_data(4*i-1)-annotations_data(4*i-3);
+    if([1,0,0,0]*mote_list')
+    for j=annotations_data(4*i-3):annotations_data(4*i-1)
+        s1(i,:,j-annotations_data(4*i-3)+1)=split_data_n1((j-1)*23+15:(j-1)*23+19);
+    end
+    end
+    for j=annotations_data(4*i-3):annotations_data(4*i-1)
+        s2(i,:,j-annotations_data(4*i-3)+1)=split_data_n2((j-1)*23+15:(j-1)*23+19);
+    end
+    for j=annotations_data(4*i-3):annotations_data(4*i-1)
+        s3(i,:,j-annotations_data(4*i-3)+1)=split_data_n3((j-1)*23+15:(j-1)*23+19);
+    end
+    for j=annotations_data(4*i-3):annotations_data(4*i-1)
+        s4(i,:,j-annotations_data(4*i-3)+1)=split_data_n4((j-1)*23+15:(j-1)*23+19);
+    end
+end
+s=cat(2,s1,s2,s3,s4);
+Template=zeros(20,81);
+Template(:,:)=s(1,:,:);
+Sample=zeros(20,81);
+for i=1:10
+    Sample(:,:)=s(i,:,:);
+    result(1,i)=DTW_core(Sample,Template);
+    accum=0;
+    for j=1:20 
+        accum=accum+xcorr((Template(j,:)-mean(Template(j,:)))/norm(Template(j,:)-mean(Template(j,:))),(Sample(j,:)-mean(Sample(j,:)))/norm(Sample(j,:)-mean(Sample(j,:))));
+    end
+    corr_result(1,i)=max(accum);
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% other movements
+clear s;
+annotations_data=textread('annotations/m0001_s01_m02.txt','%n');
+split_data_n1=textread('split/m0001_s01_m02_n01.txt','%n');
+split_data_n2=textread('split/m0001_s01_m02_n02.txt','%n');
+split_data_n3=textread('split/m0001_s01_m02_n03.txt','%n');
+split_data_n4=textread('split/m0001_s01_m02_n04.txt','%n');
+for i=1:size(annotations_data)/4
+    sample_length(i)=annotations_data(4*i-1)-annotations_data(4*i-3);
+    for j=annotations_data(4*i-3):annotations_data(4*i-1)
+        s1(i,:,j-annotations_data(4*i-3)+1)=split_data_n1((j-1)*23+15:(j-1)*23+19);
+    end
+    for j=annotations_data(4*i-3):annotations_data(4*i-1)
+        s2(i,:,j-annotations_data(4*i-3)+1)=split_data_n2((j-1)*23+15:(j-1)*23+19);
+    end
+    for j=annotations_data(4*i-3):annotations_data(4*i-1)
+        s3(i,:,j-annotations_data(4*i-3)+1)=split_data_n3((j-1)*23+15:(j-1)*23+19);
+    end
+    for j=annotations_data(4*i-3):annotations_data(4*i-1)
+        s4(i,:,j-annotations_data(4*i-3)+1)=split_data_n4((j-1)*23+15:(j-1)*23+19);
+    end
+end
+s=cat(2,s1,s2,s3,s4);
+Sample=zeros(20,94);
+for i=1:10
+    Sample(:,:)=s(i,:,:);
+    result(2,i)=DTW_core(Sample,Template);
+    accum=0;
+    for j=1:20 
+        accum=accum+xcorr((Template(j,:)-mean(Template(j,:)))/norm(Template(j,:)-mean(Template(j,:))),(Sample(j,:)-mean(Sample(j,:)))/norm(Sample(j,:)-mean(Sample(j,:))));
+    end
+    corr_result(2,i)=max(accum);
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% other movements
+clear s;
+annotations_data=textread('annotations/m0001_s01_m03.txt','%n');
+split_data_n1=textread('split/m0001_s01_m03_n01.txt','%n');
+split_data_n2=textread('split/m0001_s01_m03_n02.txt','%n');
+split_data_n3=textread('split/m0001_s01_m03_n03.txt','%n');
+split_data_n4=textread('split/m0001_s01_m03_n04.txt','%n');
+for i=1:size(annotations_data)/4
+    sample_length(i)=annotations_data(4*i-1)-annotations_data(4*i-3);
+    for j=annotations_data(4*i-3):annotations_data(4*i-1)
+        s1(i,:,j-annotations_data(4*i-3)+1)=split_data_n1((j-1)*23+15:(j-1)*23+19);
+    end
+    for j=annotations_data(4*i-3):annotations_data(4*i-1)
+        s2(i,:,j-annotations_data(4*i-3)+1)=split_data_n2((j-1)*23+15:(j-1)*23+19);
+    end
+    for j=annotations_data(4*i-3):annotations_data(4*i-1)
+        s3(i,:,j-annotations_data(4*i-3)+1)=split_data_n3((j-1)*23+15:(j-1)*23+19);
+    end
+    for j=annotations_data(4*i-3):annotations_data(4*i-1)
+        s4(i,:,j-annotations_data(4*i-3)+1)=split_data_n4((j-1)*23+15:(j-1)*23+19);
+    end
+end
+s=cat(2,s1,s2,s3,s4);
+Sample=zeros(20,108);
+for i=1:8
+    Sample(:,:)=s(i,:,:);
+    result(3,i)=DTW_core(Sample,Template);
+    accum=0;
+    for j=1:20 
+        accum=accum+xcorr((Template(j,:)-mean(Template(j,:)))/norm(Template(j,:)-mean(Template(j,:))),(Sample(j,:)-mean(Sample(j,:)))/norm(Sample(j,:)-mean(Sample(j,:))));
+    end
+    corr_result(3,i)=max(accum);
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% other movements
+clear s;
+annotations_data=textread('annotations/m0001_s01_m04.txt','%n');
+split_data_n1=textread('split/m0001_s01_m04_n01.txt','%n');
+split_data_n2=textread('split/m0001_s01_m04_n02.txt','%n');
+split_data_n3=textread('split/m0001_s01_m04_n03.txt','%n');
+split_data_n4=textread('split/m0001_s01_m04_n04.txt','%n');
+for i=1:size(annotations_data)/4
+    sample_length(i)=annotations_data(4*i-1)-annotations_data(4*i-3);
+    for j=annotations_data(4*i-3):annotations_data(4*i-1)
+        s1(i,:,j-annotations_data(4*i-3)+1)=split_data_n1((j-1)*23+15:(j-1)*23+19);
+    end
+    for j=annotations_data(4*i-3):annotations_data(4*i-1)
+        s2(i,:,j-annotations_data(4*i-3)+1)=split_data_n2((j-1)*23+15:(j-1)*23+19);
+    end
+    for j=annotations_data(4*i-3):annotations_data(4*i-1)
+        s3(i,:,j-annotations_data(4*i-3)+1)=split_data_n3((j-1)*23+15:(j-1)*23+19);
+    end
+    for j=annotations_data(4*i-3):annotations_data(4*i-1)
+        s4(i,:,j-annotations_data(4*i-3)+1)=split_data_n4((j-1)*23+15:(j-1)*23+19);
+    end
+end
+s=cat(2,s1,s2,s3,s4);
+Sample=zeros(20,108);
+for i=1:8
+    Sample(:,:)=s(i,:,:);
+    result(4,i)=DTW_core(Sample,Template);
+    accum=0;
+    for j=1:20 
+        accum=accum+xcorr((Template(j,:)-mean(Template(j,:)))/norm(Template(j,:)-mean(Template(j,:))),(Sample(j,:)-mean(Sample(j,:)))/norm(Sample(j,:)-mean(Sample(j,:))));
+    end
+    corr_result(4,i)=max(accum);
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% other movements
+clear s;
+annotations_data=textread('annotations/m0001_s01_m05.txt','%n');
+split_data_n1=textread('split/m0001_s01_m05_n01.txt','%n');
+split_data_n2=textread('split/m0001_s01_m05_n02.txt','%n');
+split_data_n3=textread('split/m0001_s01_m05_n03.txt','%n');
+split_data_n4=textread('split/m0001_s01_m05_n04.txt','%n');
+for i=1:size(annotations_data)/4
+    sample_length(i)=annotations_data(4*i-1)-annotations_data(4*i-3);
+    for j=annotations_data(4*i-3):annotations_data(4*i-1)
+        s1(i,:,j-annotations_data(4*i-3)+1)=split_data_n1((j-1)*23+15:(j-1)*23+19);
+    end
+    for j=annotations_data(4*i-3):annotations_data(4*i-1)
+        s2(i,:,j-annotations_data(4*i-3)+1)=split_data_n2((j-1)*23+15:(j-1)*23+19);
+    end
+    for j=annotations_data(4*i-3):annotations_data(4*i-1)
+        s3(i,:,j-annotations_data(4*i-3)+1)=split_data_n3((j-1)*23+15:(j-1)*23+19);
+    end
+    for j=annotations_data(4*i-3):annotations_data(4*i-1)
+        s4(i,:,j-annotations_data(4*i-3)+1)=split_data_n4((j-1)*23+15:(j-1)*23+19);
+    end
+end
+s=cat(2,s1,s2,s3,s4);
+Sample=zeros(20,108);
+for i=1:10
+    Sample(:,:)=s(i,:,:);
+    result(5,i)=DTW_core(Sample,Template);
+    accum=0;
+    for j=1:20 
+        accum=accum+xcorr((Template(j,:)-mean(Template(j,:)))/norm(Template(j,:)-mean(Template(j,:))),(Sample(j,:)-mean(Sample(j,:)))/norm(Sample(j,:)-mean(Sample(j,:))));
+        
+    end
+    corr_result(5,i)=max(accum);
+end
+figure(1);
+hold on;
+plot(result(1,:),'c--');
+plot(result(2,:),'g');
+plot(result(3,(1:8)),'k-.');
+plot(result(4,(1:8)),'r.-');
+plot(result(5,:),'y');
+h=legend('Sit to stand','Stand to sit','Lie to sit','Sit to lie','Walk one step forward',5);
+set(h,'Interpreter','none');
+figure(2);
+hold on;
+plot(corr_result(1,:),'c--');
+plot(corr_result(2,:),'g');
+plot(corr_result(3,(1:8)),'k-.');
+plot(corr_result(4,(1:8)),'r.-');
+plot(corr_result(5,:),'y');
+h=legend('Sit to stand','Stand to sit','Lie to sit','Sit to lie','Walk one step forward',5);
+set(h,'Interpreter','none');

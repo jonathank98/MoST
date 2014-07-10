@@ -1,0 +1,7 @@
+1: Waist
+2: Right Wrist
+3: Left Wrist
+4: Right Arm
+5: Left Thigh
+6: Right Ankle
+10: Left Ankle
